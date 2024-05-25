@@ -1,4 +1,4 @@
-import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import * as AWS from '@aws-sdk/client-s3';
 import type { _Object } from '@aws-sdk/client-s3';
 import {
   concatArrays,
@@ -46,13 +46,13 @@ const getExtension = (filename: string): string => {
   return parts[parts.length - 1];
 };
 
-const getS3Client = (): S3Client => {
+const getS3Client = (): AWS.S3 => {
   const region = getEnv('BUCKET_REGION');
   const endpoint = getEnv('BUCKET_ENDPOINT');
   const accessKeyId = getEnv('BUCKET_ACCESS_KEY_ID');
   const secretAccessKey = getEnv('BUCKET_SECRET_ACCESS_KEY');
 
-  return new S3Client({
+  return new AWS.S3({
     region,
     endpoint,
     credentials: {
@@ -175,14 +175,18 @@ export const listAllObjects = async (
   const client = getS3Client();
 
   while (isTruncated) {
-    const command: ListObjectsV2Command = new ListObjectsV2Command({
-      Bucket: bucketName,
-      ContinuationToken: continuationToken,
-    });
-    const response = await client.send(command);
-    allObjects.push(...(response.Contents || []));
-    isTruncated = response.IsTruncated || false;
-    continuationToken = response.NextContinuationToken;
+    const listObjectsResponse: AWS.ListObjectsV2CommandOutput =
+      await client.listObjectsV2({
+        Bucket: bucketName,
+        ContinuationToken: continuationToken,
+      });
+
+    if (listObjectsResponse.Contents) {
+      allObjects.push(...listObjectsResponse.Contents);
+    }
+
+    isTruncated = listObjectsResponse.IsTruncated || false;
+    continuationToken = listObjectsResponse.NextContinuationToken;
   }
   return allObjects;
 };
