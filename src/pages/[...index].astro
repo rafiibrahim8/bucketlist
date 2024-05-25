@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+import IndexPage from '../components/IndexPage.astro';
+import FourOhFour from '../components/FourOhFour.astro';
+import { getBreadcrumb } from '../functions/breadcrumb';
+import { listBucket } from '../functions/s3';
+import { ensureEnv } from '../functions/environment';
+
+ensureEnv();
+
+const requestPath = decodeURIComponent(Astro.url.pathname);
+const kv = (Astro.locals as any)?.runtime?.env?.CFKV;
+const breadCrums = getBreadcrumb(requestPath);
+const fsListing = await listBucket(requestPath, kv);
+const totalCount = fsListing.numDirectories + fsListing.numFiles;
+const title = totalCount > 0 ? `Index of ${requestPath}` : '404 - Not Found';
+---
+
+<Layout title={title}>
+  {
+    (!!totalCount && (
+      <IndexPage
+        breadCrums={breadCrums}
+        fsListing={fsListing}
+        requestPath={requestPath}
+      />
+    )) || <FourOhFour />
+  }
+</Layout>

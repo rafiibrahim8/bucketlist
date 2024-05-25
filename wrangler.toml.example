@@ -1,0 +1,8 @@
+name="your-worker-name"
+account_id = "your-account-id"
+main = "dist/_worker.js"
+compatibility_date = "2024-05-25"
+
+kv_namespaces = [
+    { binding = "CFKV", id="your-kv-id"}
+]

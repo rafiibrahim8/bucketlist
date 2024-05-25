@@ -1,0 +1,11 @@
+---
+import type { Entry } from '../functions/s3';
+import { getIcon } from '../functions/icon';
+
+interface Props {
+  entry: Entry;
+}
+const entryIcon = getIcon(Astro.props.entry);
+---
+
+<Fragment set:html={entryIcon} />

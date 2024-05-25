@@ -1,0 +1,113 @@
+---
+import Icon from './Icon.astro';
+import Up from '../icons/up.svg?raw';
+import type { BreadcrumbEntry } from '../functions/breadcrumb';
+import type { FSListing } from '../functions/s3';
+
+interface Props {
+  breadCrums: BreadcrumbEntry[];
+  requestPath: string;
+  fsListing: FSListing;
+}
+
+const { breadCrums, fsListing, requestPath } = Astro.props;
+---
+
+<header>
+  <div class='wrapper'>
+    <div class='breadcrumbs'>Folder Path</div>
+    <h1>
+      {
+        breadCrums.map((crumb, index) => {
+          return (
+            (!!index && (
+              <>
+                <a href={crumb.path}>{crumb.name}</a>
+                <span>/</span>
+              </>
+            )) || <a href={crumb.path}>{crumb.name}</a>
+          );
+        })
+      }
+    </h1>
+  </div>
+</header>
+<div class='wrapper'>
+  <main>
+    <div class='meta'>
+      <div id='summary'>
+        <span class='meta-item'>
+          <b>{fsListing.numDirectories}</b> directories
+        </span>
+        <span class='meta-item'>
+          <b>{fsListing.numFiles}</b> files
+        </span>
+      </div>
+    </div>
+    <div class='listing'>
+      <table aria-describedby='summary'>
+        <thead>
+          <tr>
+            <th></th>
+            <th> Name </th>
+            <th class='center'> Size </th>
+            <th class='hideable center'> Last Modified </th>
+            <th class='hideable'></th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            requestPath != '/' && (
+              <tr>
+                <td />
+                <td>
+                  <a href='..'>
+                    <Fragment set:html={Up} />
+                    <span class='go-up'>Up</span>
+                  </a>
+                </td>
+                <td />
+                <td class='hideable' />
+                <td class='hideable' />
+              </tr>
+            )
+          }
+          {
+            fsListing.entries.map((entry) => {
+              return (
+                <tr class='file'>
+                  <td />
+                  <td>
+                    <a href={entry.anchor}>
+                      <Icon entry={entry} />
+                      <span class='name'>{entry.name}</span>
+                    </a>
+                  </td>
+                  {!!(entry as any).size ? (
+                    <td class='size center'>
+                      <div>
+                        <div class='sizebar-text'>
+                          {entry.humanReadableSize}
+                        </div>
+                      </div>
+                    </td>
+                  ) : (
+                    <td class='size center'>&mdash;</td>
+                  )}
+                  {(!!entry.lastModified && (
+                    <td class='timestamp hideable center'>
+                      <time datetime={entry.lastModified?.toISOString()}>
+                        {entry.lastModified?.toISOString()}
+                      </time>
+                    </td>
+                  )) || <td class='timestamp hideable center'>&mdash;</td>}
+                  <td class='hideable' />
+                </tr>
+              );
+            })
+          }
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
