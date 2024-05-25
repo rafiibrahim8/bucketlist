@@ -162,7 +162,7 @@ const tryPutKVList = async (
       timestamp: new Date().getTime(),
     }),
   );
-  console.info(`KV list updated for ${getEnv('BUCKET_NAME')} at ${new Date()}`);
+  console.log(`KV list updated for ${getEnv('BUCKET_NAME')} at ${new Date()}`);
 };
 
 export const listAllObjects = async (
@@ -207,10 +207,11 @@ export const listBucket = async (
 
   const kvList = await tryGetKVList(kv);
   if (kvList !== undefined) {
+    console.log(`Using KV list for ${bucketName} at ${new Date()}`);
     return objectListToFS(kvList, normalizedPath);
   }
 
-  console.info(`Fetching bucket list for ${bucketName} at ${new Date()}`);
+  console.log(`Fetching bucket list for ${bucketName} at ${new Date()}`);
   const allObjects = await listAllObjects(bucketName);
   await tryPutKVList(allObjects, kv);
   return objectListToFS(allObjects, normalizedPath);
